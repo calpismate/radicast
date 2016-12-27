@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"os/exec"
@@ -29,6 +30,10 @@ const (
 	radikoTimeLayout = "20060102150405"
 	playerUrl        = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
 )
+
+// cookie
+
+var jar, _ = cookiejar.New(nil) 
 
 type RadikoPrograms struct {
 	Stations struct {
@@ -259,44 +264,66 @@ func (r *Radiko) StationList(ctx context.Context) ([]string, error) {
 		stations[i] = station.Id
 	}
 
+	r.LogOut(ctx)
+
 	return stations, nil
 }
 
 func (r *Radiko) todayPrograms(ctx context.Context, area string) (*RadikoPrograms, error) {
 	u, err := url.Parse("http://radiko.jp/v2/api/program/today")
 
+	var progs RadikoPrograms
+
 	if err != nil {
 		return nil, err
 	}
 
 	v := u.Query()
-	v.Set("area_id", area)
 
-	u.RawQuery = v.Encode()
+	var i, t int
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	if (*mail != "" && *pass  != "") { // Radiko Premium 
+	
+		i = 1 
+		t = 47 
+	
+	} else {
 
-	if err != nil {
-		return nil, err
+		i, _ = strconv.Atoi(strings.Replace(area, "JP", "", -1))
+		t = i	
+
 	}
+	
+	for i <= t {
+		
+		v.Set("area_id", "JP" + strconv.Itoa(i))
+	
+		u.RawQuery = v.Encode()
 
-	var progs RadikoPrograms
-	err = r.httpDo(ctx, req, func(resp *http.Response, err error) error {
+		req, err := http.NewRequest("GET", u.String(), nil)
+
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		defer resp.Body.Close()
+		err = r.httpDo(ctx, req, func(resp *http.Response, err error) error {
+			if err != nil {
+				return err
+			}
 
-		if code := resp.StatusCode; code != 200 {
-			return fmt.Errorf("not status code:200, got:%d", code)
+			defer resp.Body.Close()
+
+			if code := resp.StatusCode; code != 200 {
+				return fmt.Errorf("not status code:200, got:%d", code)
+			}
+
+			return xml.NewDecoder(resp.Body).Decode(&progs)
+		})
+		if err != nil {
+			return nil, err
 		}
 
-		return xml.NewDecoder(resp.Body).Decode(&progs)
-	})
-
-	if err != nil {
-		return nil, err
+		i++
 	}
 
 	return &progs, nil
@@ -341,7 +368,7 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 	if err != nil {
 		return nil, err
 	}
-
+	
 	prog, err := r.nowProgram(ctx, area, station)
 
 	if err != nil {
@@ -369,6 +396,8 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 		Station: station,
 		Prog:    prog,
 	}
+
+	r.LogOut(ctx)
 
 	return ret, err
 }
@@ -448,11 +477,40 @@ func (r *Radiko) download(ctx context.Context, authtoken string, station string,
 
 // return authtoken, area, err
 func (r *Radiko) auth(ctx context.Context) (string, string, error) {
-	req, err := http.NewRequest("GET", playerUrl, nil)
 
-	if err != nil {
-		return "", "", err
-	}
+	// radiko Premium
+
+	if (*mail != "" && *pass != "") {
+
+		values := url.Values{}
+
+		values.Set ("mail", *mail)
+		values.Add ("pass", *pass)
+
+		req, err := http.NewRequest("POST", "https://radiko.jp/ap/member/login/login", strings.NewReader(values.Encode()))
+		if err != nil {
+			return "", "", err
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")	
+
+        	err = r.httpDo(ctx, req, func(resp *http.Response, err error) error {
+                	if err != nil {
+                        	return err
+                	}
+
+			r.Log(resp.StatusCode)
+
+                	defer resp.Body.Close()
+
+			return nil
+		})
+	}	
+
+        req, err := http.NewRequest("GET", playerUrl, nil)
+
+        if err != nil {
+                return "", "", err
+        }
 
 	tmpSwfFile, err := ioutil.TempFile("", "swf")
 
@@ -527,7 +585,7 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 
 		defer resp.Body.Close()
 
-		authtoken = resp.Header.Get("X-Radiko-Authtoken")
+		authtoken = resp.Header.Get("X-Radiko-AuthToken")
 		keylength := resp.Header.Get("X-Radiko-Keylength")
 		keyoffset := resp.Header.Get("X-Radiko-Keyoffset")
 
@@ -580,8 +638,8 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 	req.Header.Set("X-Radiko-App-Version", "4.0.0")
 	req.Header.Set("X-Radiko-User", "test-stream")
 	req.Header.Set("X-Radiko-Device", "pc")
-	req.Header.Set("X-Radiko-Authtoken", authtoken)
-	req.Header.Set("X-Radiko-Partialkey", partialkey)
+	req.Header.Set("X-Radiko-AuthToken", authtoken)
+	req.Header.Set("X-Radiko-PartialKey", partialkey)
 
 	var area string
 	err = r.httpDo(ctx, req, func(resp *http.Response, err error) error {
@@ -619,13 +677,45 @@ func (r *Radiko) Log(v ...interface{}) {
 	log.Println("[radiko]", fmt.Sprint(v...))
 }
 
+// LogOut
+
+func (r *Radiko) LogOut(ctx context.Context) error {
+        req, err := http.NewRequest("GET", "https://radiko.jp/ap/member/webapi/member/logout", nil)
+
+        if err != nil {
+                return err
+        }
+
+        req.Header.Set("pragma", "no-cache")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Expires", "Thu, 01 Jan 1970 00:00:00 GMT")
+	req.Header.Set("Accept-Language", "ja-jp")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("ACCEPT", "application/json, text/javascript. */*; q=0.01")
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+
+        err = r.httpDo(ctx, req, func(resp *http.Response, err error) error {
+                if err != nil {
+                        return err
+                }
+	
+		defer resp.Body.Close()
+
+		return err
+	})
+	
+	return nil
+}
+
 // http://blog.golang.org/context/google/google.go
 func (r *Radiko) httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error) error) error {
 	r.Log(req.Method + " " + req.URL.String())
 
 	errChan := make(chan error)
 
-	go func() { errChan <- f(http.DefaultClient.Do(req)) }()
+	client := &http.Client{ Jar: jar }
+
+	go func() { errChan <- f(client.Do(req)) }()
 
 	select {
 	case <-ctx.Done():

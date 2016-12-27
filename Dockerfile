@@ -1,5 +1,5 @@
 FROM ubuntu:trusty
-MAINTAINER soh335
+MAINTAINER hmxrobert 
 
 RUN echo "Asia/Tokyo\n" > /etc/timezone && dpkg-reconfigure --frontend noninteractive tzdata
 
@@ -18,7 +18,7 @@ ENV GOROOT /goroot
 ENV GOPATH /gopath
 ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
 
-RUN go get -v github.com/soh335/radicast
+RUN go get -v github.com/hmxrobert/radicast
 
 ENTRYPOINT ["radicast"]
 CMD ["--help"]

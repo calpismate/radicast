@@ -19,6 +19,8 @@ var (
 	configPath = flag.String("config", "config.json", "path of config.json")
 	setup      = flag.Bool("setup", false, "initialize json configuration")
 	converter  = flag.String("converter", "", "ffmpeg or avconv. If not set this option, radicast search its automatically.")
+	mail       = flag.String("mail", "", "ID for Radiko Premium.")
+	pass       = flag.String("pass", "", "password for Radiko Premium")
 )
 
 func main() {
