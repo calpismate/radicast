@@ -64,4 +64,8 @@ $ docker run --rm -p 3355:3355 -v `pwd`/config.json:/app/config.json -v `pwd`/ou
 
 * [miyagawa/ripdiko](https://github.com/miyagawa/ripdiko)
 * [kojisano/radicast](https://github.com/kojisano/radicast)
-* [omiso46/radcast](https://github.com/omiso46/radcast)
+* [omiso46/radcast](https://github.com/omiso46/radcast)\
+
+## License
+
+* MIT License
