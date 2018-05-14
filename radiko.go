@@ -401,8 +401,12 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 
 	if *linetoken != "" {
 		err := exec.Command("curl", "-X POST -H 'Authorization: Bearer " + *linetoken + "' -F 'message=「" + prog.Title + "」の録音を終了しました' https://notify-api.line.me/api/notify").Run
+		
+		if err != nil {										
+			       r.Log("line notify error ", prog.Title)						      
+		}
 	}
-	
+
 	return ret, err
 }
 
