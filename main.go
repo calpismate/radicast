@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 	"os"
-	"os/signal"
+	"os/signal"			
 	"syscall"
 )
 
@@ -21,6 +21,7 @@ var (
 	converter  = flag.String("converter", "", "ffmpeg or avconv. If not set this option, radicast search its automatically.")
 	mail       = flag.String("mail", "", "ID for Radiko Premium.")
 	pass       = flag.String("pass", "", "password for Radiko Premium")
+	LINEtoken  = flag.String("linetoken", "", "LINE token if you want to notify via LINE.")
 )
 
 func main() {
