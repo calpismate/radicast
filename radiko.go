@@ -400,6 +400,9 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 	r.LogOut(ctx)
 
 	if *linetoken != "" {
+		
+		var err error
+		
 		path, err := exec.LookPath("curl")
 		
 		if err != nil {										
