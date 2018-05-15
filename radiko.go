@@ -414,7 +414,7 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 				              "-F", "'message=「" + prog.Title + "」の録音を終了しました'",
 				              "https://notify-api.line.me/api/notify")
 		
-		if err := cmd.run(); err != nil {										
+		if err := cmd.Run(); err != nil {										
 			       r.Log("line notify error ", prog.Title)						      
 		}
 	}
