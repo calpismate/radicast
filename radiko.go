@@ -405,7 +405,7 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 
     		u, err := url.ParseRequestURI(URL)
     		if err != nil {
-        		r.Log("line notify error ", prog.Title)
+        		r.Log("LINE Notify", "URL ParseError")
     		}
 
     		c := &http.Client{}
@@ -414,16 +414,17 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 
     		req, err := http.NewRequest("POST", u.String(), body)
     		if err != nil {
-        		r.Log("line notify error ", prog.Title)
+        		r.Log("LINE Notify", "Request Failure")
     		}
 
     		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
     		req.Header.Set("Authorization", "Bearer " + *linetoken)
 
-    		_, err = c.Do(req)
+		_, err = c.Do(req)
     		if err != nil {
-        		r.Log("line notify error ", prog.Title)
+        		r.Log("LINE Notify", "POST Failure")
     		}
+		r.Log("LINE Notify", "Success:" + body)
 	}
 
 	return ret, err
