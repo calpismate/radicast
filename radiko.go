@@ -403,18 +403,18 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 		
 		var err error
 		
-		path, err := exec.LookPath("curl")
+		curlpath, err := exec.LookPath("curl")
 		
 		if err != nil {										
 			r.Log("line notify error (curl is not found) ", prog.Title)						      
 		}
 		
-		err := exec.Command(path, "-X", "POST", 
-				          "-H", "'Authorization: Bearer " + *linetoken + "'",
-				          "-F", "'message=「" + prog.Title + "」の録音を終了しました'",
-				          "https://notify-api.line.me/api/notify").Run
+		cmd := exec.Command(curlpath, "-X", "POST", 
+				              "-H", "'Authorization: Bearer " + *linetoken + "'",
+				              "-F", "'message=「" + prog.Title + "」の録音を終了しました'",
+				              "https://notify-api.line.me/api/notify")
 		
-		if err != nil {										
+		if err := cmd.run(); err != nil {										
 			       r.Log("line notify error ", prog.Title)						      
 		}
 	}
