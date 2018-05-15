@@ -400,6 +400,8 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 	r.LogOut(ctx)
 
 	if *linetoken != "" {
+		
+		r.Log("LINE Notify", *linetoken)
 
     		URL := "https://notify-api.line.me/api/notify"
 
@@ -424,7 +426,7 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
     		if err != nil {
         		r.Log("LINE Notify", "POST Failure")
     		}
-		r.Log("LINE Notify", "Success:" + body)
+		r.Log("LINE Notify", "Success:「" + prog.Title + "」の録音を終了しました")
 	}
 
 	return ret, err
