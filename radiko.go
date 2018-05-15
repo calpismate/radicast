@@ -420,7 +420,7 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
     		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
     		req.Header.Set("Authorization", "Bearer " + *linetoken)
 
-    		_, err := c.Do(req)
+    		_, err = c.Do(req)
     		if err != nil {
         		r.Log("line notify error ", prog.Title)
     		}
