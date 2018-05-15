@@ -401,22 +401,25 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 
 	if *linetoken != "" {
 		
-		r.Log("LINE Notify", *linetoken)
+		r.Log("line notify: ", "line token is " + *linetoken)
 
     		URL := "https://notify-api.line.me/api/notify"
 
     		u, err := url.ParseRequestURI(URL)
     		if err != nil {
-        		r.Log("LINE Notify", "URL ParseError")
+			r.Log("line notify: ", "url parse error")
     		}
 
     		c := &http.Client{}
+		
+		form := url.Values{}
+    		form.Add("message", "「" + prog.Title + "」の録音を終了しました")
 
-    		body := strings.NewReader("「" + prog.Title + "」の録音を終了しました")
+    		body := strings.NewReader(form.Encode())
 
     		req, err := http.NewRequest("POST", u.String(), body)
     		if err != nil {
-        		r.Log("LINE Notify", "Request Failure")
+			r.Log("line notify: ", "request failure")
     		}
 
     		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -424,9 +427,9 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 
 		_, err = c.Do(req)
     		if err != nil {
-        		r.Log("LINE Notify", "POST Failure")
+			r.Log("line notify: ", "post failure")
     		}
-		r.Log("LINE Notify", "Success:「" + prog.Title + "」の録音を終了しました")
+		r.Log("line notify: ", "post successed")
 	}
 
 	return ret, err
