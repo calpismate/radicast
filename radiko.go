@@ -410,7 +410,7 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 
     		c := &http.Client{}
 
-    		body := strings.NewReader(「" + prog.Title + "」の録音を終了しました")
+    		body := strings.NewReader("「" + prog.Title + "」の録音を終了しました")
 
     		req, err := http.NewRequest("POST", u.String(), body)
     		if err != nil {
