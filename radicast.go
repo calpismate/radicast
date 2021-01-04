@@ -9,7 +9,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/robfig/cron/v2"
+	"gopkg.in/robfig/cron.v2"
 )
 
 type Radicast struct {
