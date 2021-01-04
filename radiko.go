@@ -647,10 +647,7 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 			return err
 		}
 
-		partialkeyByt := make([]byte, keylengthI)
-		if _, err = tmpAuthKeyPngFile.ReadAt(partialkeyByt, int64(keyoffsetI)); err != nil {
-			return err
-		}
+		var partialKeyStr = string([]rune(auth_key)[keyoffsetI:keyoffsetI+keylengthI])
 
 		partialkey = base64.StdEncoding.EncodeToString([]byte(partialKeyStr))
 
