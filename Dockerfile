@@ -18,8 +18,7 @@ ENV GOROOT /goroot
 ENV GOPATH /gopath
 ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
 
-RUN go get github.com/robfig/cron/v2
-RUN go get -v github.com/hmxrobert/radicast
+RUN go get -d gopkg.in/robfig/cron.v2 && go get -v github.com/hmxrobert/radicast
 
 ENTRYPOINT ["radicast"]
 CMD ["--help"]
