@@ -29,6 +29,7 @@ import (
 const (
 	radikoTimeLayout = "20060102150405"
 	playerUrl        = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
+	auth_key         = "bcd151073c03b352e1ef2fd66c32209da9ca0afa"
 )
 
 // cookie
@@ -596,16 +597,16 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 		return "", "", err
 	}
 
-	req, err = http.NewRequest("POST", "https://radiko.jp/v2/api/auth1_fms", nil)
+	req, err = http.NewRequest("GET", "https://radiko.jp/v2/api/auth1", nil)
 
 	if err != nil {
 		return "", "", err
 	}
 
 	req.Header.Set("pragma", "no-cache")
-	req.Header.Set("X-Radiko-App", "pc_ts")
-	req.Header.Set("X-Radiko-App-Version", "4.0.0")
-	req.Header.Set("X-Radiko-User", "test-stream")
+	req.Header.Set("X-Radiko-App", "pc_html5")
+	req.Header.Set("X-Radiko-App-Version", "0.0.1")
+	req.Header.Set("X-Radiko-User", "dummy_user")
 	req.Header.Set("X-Radiko-Device", "pc")
 
 	var authtoken string
@@ -651,7 +652,7 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 			return err
 		}
 
-		partialkey = base64.StdEncoding.EncodeToString(partialkeyByt)
+		partialkey = base64.StdEncoding.EncodeToString([]byte(partialKeyStr))
 
 		return nil
 	})
@@ -660,16 +661,14 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 		return "", "", err
 	}
 
-	req, err = http.NewRequest("POST", "https://radiko.jp/v2/api/auth2_fms", nil)
+	req, err = http.NewRequest("GET", "https://radiko.jp/v2/api/auth2", nil)
 
 	if err != nil {
 		return "", "", err
 	}
 
 	req.Header.Set("pragma", "no-cache")
-	req.Header.Set("X-Radiko-App", "pc_ts")
-	req.Header.Set("X-Radiko-App-Version", "4.0.0")
-	req.Header.Set("X-Radiko-User", "test-stream")
+	req.Header.Set("X-Radiko-User", "dummy_user")
 	req.Header.Set("X-Radiko-Device", "pc")
 	req.Header.Set("X-Radiko-AuthToken", authtoken)
 	req.Header.Set("X-Radiko-PartialKey", partialkey)
