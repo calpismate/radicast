@@ -6,6 +6,7 @@ package main
 // https://gist.github.com/saiten/875864
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/xml"
