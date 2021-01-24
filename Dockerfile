@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
         libav-tools \
         rtmpdump \
         swftools \
-        git
+        git \
+        ffmpeg
 
 # http://blog.gopheracademy.com/advent-2014/easy-deployment/
 RUN mkdir /goroot && curl https://storage.googleapis.com/golang/go1.7.1.linux-amd64.tar.gz | tar xvzf - -C /goroot --strip-components=1
