@@ -1,9 +1,11 @@
 FROM ubuntu:trusty
-MAINTAINER hmxrobert 
+MAINTAINER hmxrobert
 
 RUN echo "Asia/Tokyo\n" > /etc/timezone && dpkg-reconfigure --frontend noninteractive tzdata
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get -y install software-properties-common && \
+    add-apt-repository ppa:mc3man/trusty-media && \
+    apt-get update && apt-get install -y \
         ntp \
         curl \
         libav-tools \
