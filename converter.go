@@ -42,6 +42,24 @@ func newFfmpegCmd(ffmpeg, bitrate, output string) *exec.Cmd {
 	)
 }
 
+func hlsFfmpegCmd(ffmpeg, streamURL string, authtoken string, sec string, output string) *exec.Cmd {
+	return exec.Command(
+		ffmpeg,
+		"-loglevel", "error",
+		"-fflags", "+discardcorrupt",
+		"-headers", `"X-Radiko-Authtoken: `+authtoken+`"`,
+		"-i", streamURL,
+		"-acodec", "copy",
+		"-vn",
+		"-bsf:a", "aac_adtstoasc",
+		"-y",
+		"-t", sec,
+		"-movflags", "+faststart",
+		output,
+	)
+
+}
+
 func newAvconvCmd(avconv, bitrate, output string) *exec.Cmd {
 	return exec.Command(
 		avconv,
