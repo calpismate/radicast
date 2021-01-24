@@ -66,3 +66,8 @@ $ docker run --rm -p 3355:3355 -v `pwd`:/workspace soh335/radicast:latest --conf
 ## SEE ALSO
 
 * [ripdiko](https://github.com/miyagawa/ripdiko)
+
+## ADDITION
+
+* authの仕様変更対応のコードは https://github.com/kojisano/radicast のものを使わせていただきました。 
+* HLSダウンロード対応のコードは https://github.com/omiso46/radcast のものを使わせていただきました。
