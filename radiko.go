@@ -30,6 +30,7 @@ const (
 	radikoTimeLayout = "20060102150405"
 	playerUrl        = "http://radiko.jp/apps/js/flash/myplayer-release.swf"
 	auth_key         = "bcd151073c03b352e1ef2fd66c32209da9ca0afa"
+	streamMultiURL   = "http://radiko.jp/v2/station/stream_smh_multi/%s.xml"
 )
 
 // cookie
@@ -64,6 +65,18 @@ type RadikoProg struct {
 	Desc     string   `xml:"desc"`
 	Info     string   `xml:"info"`
 	Url      string   `xml:"url"`
+}
+
+type StreamURLItem struct {
+	AreaFree          bool   `xml:"areafree,attr"`
+	MediaURLPath      string `xml:"media_url_path"`
+	PlaylistCreateURL string `xml:"playlist_create_url"`
+	PlaylistURLPath   string `xml:"playlist_url_path"`
+}
+
+type StreamUrlData struct {
+	XMLName xml.Name        `XML:"urls"`
+	URL     []StreamURLItem `xml:"url"`
 }
 
 func (r *RadikoProg) FtTime() (time.Time, error) {
