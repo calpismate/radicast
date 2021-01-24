@@ -386,7 +386,8 @@ func (r *Radiko) record(ctx context.Context, output string, station string, bitr
 
 	duration += buffer
 
-	err = r.download(ctx, authtoken, station, fmt.Sprint(duration), bitrate, output)
+	// err = r.download(ctx, authtoken, station, fmt.Sprint(duration), bitrate, output)
+	err = r.hlsDownload(ctx, authtoken, station, fmt.Sprint(duration), output)
 
 	if _, fileErr := os.Stat(output); fileErr != nil {
 		return nil, err
@@ -626,7 +627,7 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 		if authtoken == "" {
 			return errors.New("auth token is empty")
 		}
-
+		
 		if keylength == "" {
 			return errors.New("keylength is empty")
 		}
@@ -683,7 +684,7 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 		if err != nil {
 			return err
 		}
-
+		fmt.Println(string(byt))
 		matches := regexp.MustCompile("(.*),(.*),(.*)").FindAllStringSubmatch(string(byt), -1)
 
 		if len(matches) == 1 && len(matches[0]) != 4 {
@@ -749,6 +750,61 @@ func (r *Radiko) httpDo(ctx context.Context, req *http.Request, f func(*http.Res
 	select {
 	case <-ctx.Done():
 		http.DefaultTransport.(*http.Transport).CancelRequest(req)
+		err := <-errChan
+		if err == nil {
+			err = ctx.Err()
+		}
+		return err
+	case err := <-errChan:
+		return err
+	}
+}
+
+func (r *Radiko) hlsDownload(ctx context.Context, authtoken string, station string, sec string, output string) error {
+
+	streamURL, err := r.GetStreamURL(station)
+	hlsRecCmd := hlsFfmpegCmd(r.Converter, streamURL, authtoken, sec, output)
+	if err != nil {
+		return err
+	}
+
+	shfile, err := os.Create(filepath.Join(r.TempDir, "radikorec.sh"))
+	if err != nil {
+		return err
+	}
+	defer shfile.Close()
+
+	if _, err := shfile.WriteString(strings.Join(hlsRecCmd.Args, " ")); err != nil {
+		return err
+	}
+
+	// r.Log("ffmpeg command: ", strings.Join(hlsRecCmd.Args, " "))
+
+	hlsRecShell := exec.Command(
+		"/usr/bin/sh",
+		filepath.Join(r.TempDir, "radikorec.sh"),
+	)
+
+	// r.Log("hlsRecShell command: ", strings.Join(hlsRecShell.Args, " "))
+
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	hlsRecShell.Stdout = &out
+	hlsRecShell.Stderr = &stderr
+
+	errChan := make(chan error)
+	go func() {
+		if err := hlsRecShell.Run(); err != nil {
+			r.Log("CmdRun err:" + stderr.String())
+			errChan <- err
+			return
+		}
+		errChan <- nil
+
+	}()
+
+	select {
+	case <-ctx.Done():
 		err := <-errChan
 		if err == nil {
 			err = ctx.Err()
