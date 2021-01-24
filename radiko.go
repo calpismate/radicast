@@ -760,6 +760,38 @@ func (r *Radiko) httpDo(ctx context.Context, req *http.Request, f func(*http.Res
 	}
 }
 
+func (r *Radiko) GetStreamURL(stationID string) (string, error) {
+
+	u := fmt.Sprintf(streamMultiURL, stationID)
+	rsp, err := http.Get(u)
+	if err != nil {
+		return "", err
+	}
+	defer rsp.Body.Close()
+
+	b, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	urlData := StreamUrlData{}
+	if err = xml.Unmarshal(b, &urlData); err != nil {
+		return "", err
+	}
+
+	var streamURL string = ""
+	for _, i := range urlData.URL {
+		if i.AreaFree {
+			streamURL = i.PlaylistCreateURL
+			break
+		}
+
+	}
+
+	return streamURL, err
+
+}
+
 func (r *Radiko) hlsDownload(ctx context.Context, authtoken string, station string, sec string, output string) error {
 
 	streamURL, err := r.GetStreamURL(station)
