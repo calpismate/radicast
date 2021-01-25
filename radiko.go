@@ -824,7 +824,7 @@ func (r *Radiko) hlsDownload(ctx context.Context, authtoken string, station stri
 		return err
 	}
 
-	// r.Log("ffmpeg command: ", strings.Join(hlsRecCmd.Args, " "))
+	r.Log("ffmpeg command: ", strings.Join(hlsRecCmd.Args, " "))
 
 	hlsRecShell := exec.Command(
 		"/bin/sh",
