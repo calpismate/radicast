@@ -827,11 +827,11 @@ func (r *Radiko) hlsDownload(ctx context.Context, authtoken string, station stri
 	// r.Log("ffmpeg command: ", strings.Join(hlsRecCmd.Args, " "))
 
 	hlsRecShell := exec.Command(
-		"/usr/bin/sh",
+		"/bin/sh",
 		filepath.Join(r.TempDir, "radikorec.sh"),
 	)
 
-	// r.Log("hlsRecShell command: ", strings.Join(hlsRecShell.Args, " "))
+	r.Log("hlsRecShell command: ", strings.Join(hlsRecShell.Args, " "))
 
 	var out bytes.Buffer
 	var stderr bytes.Buffer
