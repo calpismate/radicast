@@ -177,7 +177,7 @@ func (r *Radiko) run(ctx context.Context) []*RadikoResult {
 	results := []*RadikoResult{}
 
 	record := func() error {
-		output := filepath.Join(r.TempDir, fmt.Sprintf("radiko_%d.mp3", retry))
+		output := filepath.Join(r.TempDir, fmt.Sprintf("radiko_%d.m4a", retry))
 
 		ret, err := r.record(ctx, output, r.Station, r.Bitrate, r.Buffer)
 
