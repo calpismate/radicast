@@ -1,27 +1,64 @@
-FROM ubuntu:trusty
-MAINTAINER hmxrobert
+FROM alpine:3.12.7 as build-swftools
+LABEL maintainer "calpismate"
 
-RUN echo "Asia/Tokyo\n" > /etc/timezone && dpkg-reconfigure --frontend noninteractive tzdata
+ENV SWFTOOLS_VERSION "0.9.2"
+RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing \
+        autoconf \
+        automake \
+        fftw-dev \
+        g++ \
+        gcc \
+        libc6-compat \
+        libtool \
+        make \
+        nasm \
+        vips-dev \
+    && wget http://swftools.org/swftools-${SWFTOOLS_VERSION}.tar.gz \
+    && tar xf swftools-${SWFTOOLS_VERSION}.tar.gz \
+    && cd swftools-${SWFTOOLS_VERSION} \
+    && LIBRARY_PATH=/lib:/usr/lib ./configure \
+    && make \
+    && sed -e 's/-o -L/#-o -L/' -i swfs/Makefile \
+    && make install \
+    && cd ../ \
+    && rm -rf swftools-${SWFTOOLS_VERSION}
 
-RUN apt-get -y install software-properties-common && \
-    add-apt-repository ppa:mc3man/trusty-media && \
-    apt-get update && apt-get install -y \
-        ntp \
+
+FROM golang:1.16.3-alpine3.12
+LABEL maintainer "calpismate"
+
+ENV GO11MODULE "on"
+RUN mkdir -p /app
+
+RUN apk add --no-cache tzdata \
+    && cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
+    && apk del tzdata 
+
+RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing \
         curl \
-        libav-tools \
-        rtmpdump \
-        swftools \
+        ffmpeg \
         git \
-        ffmpeg
+        libxml2-utils \
+        perl \
+        rtmpdump 
 
-# http://blog.gopheracademy.com/advent-2014/easy-deployment/
-RUN mkdir /goroot && curl https://storage.googleapis.com/golang/go1.7.1.linux-amd64.tar.gz | tar xvzf - -C /goroot --strip-components=1
+WORKDIR /app
 
-ENV GOROOT /goroot
-ENV GOPATH /gopath
-ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
+COPY --from=build-swftools /usr/local/bin/swfextract /usr/local/bin/
+COPY config.go /app/config.go
+COPY converter.go /app/converter.go
+COPY copy.go /app/copy.go
+COPY copy_test.go /app/copy_test.go
+COPY main.go /app/main.go
+COPY podcast.go /app/podcast.go
+COPY radicast.go /app/radicast.go
+COPY radiko.go /app/radiko.go
+COPY server.go /app/server.go
+COPY go.mod /app/go.mod
+COPY go.sum /app/go.sum
 
-RUN go get -d gopkg.in/robfig/cron.v2 && go get -v github.com/hmxrobert/radicast
+RUN go mod download \
+    && go build
 
-ENTRYPOINT ["radicast"]
+ENTRYPOINT ["./radicast"]
 CMD ["--help"]
