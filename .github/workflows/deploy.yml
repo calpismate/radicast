@@ -1,5 +1,4 @@
-name: Build and push to Dockerhub
-
+name: Build and push to Docker Hub
 on: 
   push:
     tags:
