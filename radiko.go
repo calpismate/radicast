@@ -698,7 +698,6 @@ func (r *Radiko) auth(ctx context.Context) (string, string, error) {
 		if err != nil {
 			return err
 		}
-		fmt.Println(string(byt))
 		matches := regexp.MustCompile("(.*),(.*),(.*)").FindAllStringSubmatch(string(byt), -1)
 
 		if len(matches) == 1 && len(matches[0]) != 4 {
