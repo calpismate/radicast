@@ -34,13 +34,13 @@ jobs:
         run: echo ${{ steps.docker_build.outputs.digest }}
       
       - name: Export Docker image from local
-        run: docker save ${{ steps.meta.outputs.tags }} > /tmp/radicast-image.tar
+        run: docker save ${{ steps.meta.outputs.tags }} | gzip -c > /tmp/radicast-image.tar.gz
   
       - name: Upload Docker image as an articact
         uses: actions/upload-artifact@v2
         with:
           name: radicast-image
-          path: /tmp/radicast-image.tar
+          path: /tmp/radicast-image.tar.gz
 
   push:
     needs: build
@@ -55,5 +55,5 @@ jobs:
       
       - name: Load Docker image
         run: |
-          docker load --input /tmp/radicast-image.tar
+          cat /tmp/radicast-image.tar.gz | gzip -d | docker load
           docker image ls -a 
