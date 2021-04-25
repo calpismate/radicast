@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  radicast:
+    image: calpismate/radicast:0.1.2
+    volumes:
+      - ./config.json:/app/config.json
+      - ./output:/app/output:rw
+    ports:
+      - "3355:3355"
+    command:
+      -config=/app/config.json -output=/app/output
+    restart: always
