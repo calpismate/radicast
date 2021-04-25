@@ -1,6 +1,10 @@
-name: Build and push to Docker Hub
+name: Build
 on: 
   push:
+    branches: 
+      - develop
+      - 'feature/**'
+      - 'release/**'
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
 
@@ -12,16 +16,44 @@ jobs:
       - name: Checkout from GitHub
         uses: actions/checkout@v2
       
-      - name: Build and push Docker image
-        id: docker_build
-        uses: docker/build-push-action@v1
+      - name: Get Docker meta
+        id: meta
+        uses: crazy-max/ghaction-docker-meta@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }} 
-          repository: calpismate/radicast
-          context: .
-          push: true
-          tag_with_ref: true
+          images: calpismate/radicast
+
+      - name: Build Docker image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+          push: false
+          load: true
       
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+      
+      - name: Export Docker image from local
+        run: docker save ${{ steps.meta.outputs.tags }} > /tmp/radicast-image.tar
+  
+      - name: Upload Docker image as an articact
+        uses: actions/upload-artifact@v2
+        with:
+          name: radicast-image
+          path: /tmp/radicast-image.tar
+
+  push:
+    needs: build
+    runs-on: ubuntu-18.04
+    timeout-minutes: 20
+    steps:
+      - name: Download Docker image from the artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: radicast-image
+          path: /tmp
+      
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/radicast-image.tar
+          docker image ls -a 
