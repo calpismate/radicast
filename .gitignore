@@ -1,4 +1,3 @@
 output
 *.json
 radicast
-docker-compose.yml*
