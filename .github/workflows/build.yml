@@ -39,6 +39,7 @@ jobs:
         run: docker save ${{ steps.meta.outputs.tags }} | gzip -c > /tmp/radicast-image.tar.gz
   
       - name: Upload Docker image as an articact
+        if: github.ref == 'refs/heads/master' || contains(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v2
         with:
           name: radicast-image
