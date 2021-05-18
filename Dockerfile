@@ -24,7 +24,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
     && rm -rf swftools-${SWFTOOLS_VERSION}
 
 
-FROM golang:1.16.3-alpine3.12
+FROM golang:1.16.4-alpine3.13
 LABEL maintainer "calpismate"
 
 ENV GO11MODULE "on"
