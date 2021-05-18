@@ -13,7 +13,7 @@
 ## Install
 
 ```
-$ go get github.com/calpismate/radicast
+$ git clone https://github.com/calpismate/radicast
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ $ go get github.com/calpismate/radicast
 ### Setup config.json
 
 ```
-$ radicast --setup > config.json
+$ docker-compose run --entrypoint "/app/radicast" radicast --setup | grep -Ev '^[0-9]{4}/.*' > config.json
 ```
 
 ### Edit config.json
@@ -42,7 +42,7 @@ Cron specification is [here](https://godoc.org/github.com/robfig/cron#hdr-CRON_E
 ### Launch
 
 ```
-$ radicast
+$ docker-compose up -d
 $ curl 127.0.0.1:3355/rss # podcast rss
 ```
 
@@ -50,21 +50,11 @@ $ curl 127.0.0.1:3355/rss # podcast rss
 
 Radicast will reload config when receive HUP signal.
 
-## Docker
-
-```
-$ mkdir workspace
-$ cd workspace
-$ docker pull calpismate/radicast
-$ docker run --rm calpismate/radicast:latest --setup > config.json
-$ docker run --rm -p 3355:3355 -v `pwd`/config.json:/app/config.json -v `pwd`/output calpismate/radicast:latest --config /app/config.json --output /app/output
-```
-
 ## See also
 
 * [miyagawa/ripdiko](https://github.com/miyagawa/ripdiko)
 * [kojisano/radicast](https://github.com/kojisano/radicast)
-* [omiso46/radcast](https://github.com/omiso46/radcast)\
+* [omiso46/radcast](https://github.com/omiso46/radcast)
 
 ## License
 
