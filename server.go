@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-
+	"strings"
 	"github.com/gorilla/mux"
 )
 
@@ -31,35 +31,64 @@ func (s *Server) errorHandler(f func(http.ResponseWriter, *http.Request) error) 
 	}
 }
 
+func (s *Server) ipAddrFromRemoteAddr(remoteAddr string) string {
+	index := strings.LastIndex(remoteAddr, ":")
+	if index == -1 {
+		return remoteAddr
+	}
+	return remoteAddr[:index]
+}
+
+func (s *Server) requestGetRemoteAddress(r *http.Request) string {
+	header := r.Header
+	headerRealIP := header.Get("X-Real-Ip")
+	headerForwardedFor := header.Get("X-Forwarded-For")
+	if headerRealIP == "" && headerForwardedFor == "" {
+		return s.ipAddrFromRemoteAddr(r.RemoteAddr)
+	}
+	if headerForwardedFor != "" {
+		parts := strings.Split(headerForwardedFor, ",")
+		for i, p := range parts {
+			parts[i] = strings.TrimSpace(p)
+		}
+		return parts[0]
+	}
+	return headerRealIP
+}
+
+
 func (s *Server) Run() error {
 
-	s.Log("start ", s.Addr)
+	s.Log("Listen start at ", s.Addr)
 
 	router := mux.NewRouter()
 
 	router.HandleFunc("/podcast/{program}.mp3", s.errorHandler(func(w http.ResponseWriter, r *http.Request) error {
+		method := r.Method
+		uri := r.URL.String()
+		referer := r.Header.Get("Referer")
+		userAgent := r.Header.Get("User-Agent")
+		remoteAddr := s.requestGetRemoteAddress(r)
+
+		s.Log(remoteAddr, " ", uri, " ", method, " ", referer, " ", userAgent)
 		dir := mux.Vars(r)["program"]
 
 		mp3Path, mp3Stat, err := s.mp3Path(dir)
-
 		if _, err := os.Stat(mp3Path); err != nil {
 			http.NotFound(w, r)
 			return nil
 		}
 
 		xmlPath, _, err := s.xmlPath(dir)
-
 		if _, err := os.Stat(xmlPath); err != nil {
 			http.NotFound(w, r)
 			return nil
 		}
 
 		f, err := os.Open(mp3Path)
-
 		if err != nil {
 			return err
 		}
-
 		defer f.Close()
 
 		http.ServeContent(w, r, mp3Stat.Name(), mp3Stat.ModTime(), f)
@@ -67,21 +96,25 @@ func (s *Server) Run() error {
 	}))
 
 	router.HandleFunc("/rss", s.errorHandler(func(w http.ResponseWriter, r *http.Request) error {
+		method := r.Method
+		uri := r.URL.String()
+		referer := r.Header.Get("Referer")
+		userAgent := r.Header.Get("User-Agent")
+		remoteAddr := s.requestGetRemoteAddress(r)
+
+		s.Log(remoteAddr, " ", uri, " ", method, " ", referer, " ", userAgent)
 
 		baseUrl, err := url.Parse("http://" + r.Host)
-
 		if err != nil {
 			return err
 		}
 
 		rss, err := s.rss(baseUrl)
-
 		if err != nil {
 			return err
 		}
 
 		var b bytes.Buffer
-
 		b.WriteString(xml.Header)
 
 		enc := xml.NewEncoder(&b)
