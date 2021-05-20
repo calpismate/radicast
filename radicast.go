@@ -117,7 +117,7 @@ func (r *Radicast) ReloadConfig() error {
 	for station, specs := range config {
 		for _, spec := range specs {
 			func(station string, spec string) {
-				r.Log("station:", station, " spec:", spec)
+				r.Log("Adding entry <station: ", station, ", spec: ", spec, ">")
 				c.AddFunc(spec, func() {
 					r.wg.Add(1)
 					defer r.wg.Done()
@@ -151,7 +151,7 @@ func (r *Radicast) ReloadConfig() error {
 
 	r.cron = c
 
-	r.Log("start new cron")
+	r.Log("Start new cron")
 
 	return nil
 }
