@@ -1,5 +1,7 @@
 # radicast
 
+![Workflow main.yml](https://github.com/calpismate/radicast/actions/workflows/main.yml/badge.svg)
+
 * Record Radiko
 * Serve RSS for Podcast
 
